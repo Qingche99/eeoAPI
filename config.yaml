@@ -1,9 +1,0 @@
-school:
-  school_id: 12345
-  school_name: "某某学校"
-mysql:
-  host: "localhost"
-  port: 3306
-  user: "username"
-  password: "password"
-  database: "database_name"
