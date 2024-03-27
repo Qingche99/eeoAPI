@@ -6,10 +6,11 @@
 @IDE      :PyCharm
 """
 
-import time
 import hashlib
-import requests
 import json
+import time
+
+import requests
 
 """
 如果你有任何疑问，可以通过eeoapisupport@eeoa.com联系我们
@@ -112,31 +113,40 @@ class API:
         safe_key = hashlib.md5((secret + str(time_stamp)).encode()).hexdigest()
         return time_stamp, safe_key
 
-    def register(self, email, nickname, password, addToSchoolMember):
+    def register(self, account, nickname, password, addToSchoolMember):
         """
         注册用户  https://docs.eeo.cn/api/zh-hans/user/register.html
-        @param email: string 必填-用户邮箱
+        @param account: string 必填-用户手机号或邮箱
         @param nickname: string 非必填-eeo.cn姓名，如用户是首次注册，将同步姓名信息至客户端昵称，非首次注册则不修改用户当前昵称
         @param password:string 必填-密码
         @param addToSchoolMember:int 非必填-1学生 2老师
         @return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
-            'SID': self.SID,
-            'timeStamp': time_stamp,
-            'safeKey': safe_key,
-            'email': email,
-            'password': password,
-            'nickname': nickname,
-            'addToSchoolMember': addToSchoolMember
-        }
+        if '@' in account:
+            data = {
+                'SID': self.SID,
+                'timeStamp': time_stamp,
+                'safeKey': safe_key,
+                'email': account,
+                'password': password,
+                'nickname': nickname,
+                'addToSchoolMember': addToSchoolMember
+            }
+        else:
+            data = {
+                'SID': self.SID,
+                'timeStamp': time_stamp,
+                'safeKey': safe_key,
+                'telephone': account,
+                'password': password,
+                'nickname': nickname,
+                'addToSchoolMember': addToSchoolMember
+            }
 
         response = json.loads((requests.post(url=self.action.register, data=data)).text)
-        if 'data' in response.keys():
-            return response['data']
-        else:
-            return ''
+
+        return response
 
     def register_multiple(self, userJson):
         """
@@ -215,9 +225,9 @@ class API:
             'studentName': studentName
         }
 
-        response = (requests.post(url=self.action.addSchoolStudent, data=data)).text
+        response = json.loads((requests.post(url=self.action.addSchoolStudent, data=data)).text)
 
-        return json.loads(response)
+        return response
 
     def edit_school_student(self, studentUid, studentName):
         """
@@ -235,9 +245,9 @@ class API:
             'studentName': studentName
         }
 
-        response = (requests.post(url=self.action.editSchoolStudent, data=data)).text
+        response = json.loads((requests.post(url=self.action.editSchoolStudent, data=data)).text)
 
-        return json.loads(response)
+        return response
 
     def add_course(self, courseName, folderId=None, expiryTime=None, mainTeacherUid=None, allowAddFriend=None,
                    allowStudentModifyNickname=None, courseUniqueIdentity=None):
@@ -267,11 +277,7 @@ class API:
         }
 
         response = json.loads((requests.post(url=self.action.addCourse, data=data)).text)
-        if 'data' in response.keys():
-
-            return response['data']
-        else:
-            return ''
+        return response
 
     def end_course(self, courseId):
         """
@@ -289,8 +295,6 @@ class API:
             'courseId': courseId,
         }
         response = json.loads((requests.post(url=self.action.endCourse, data=data)).text)
-        # end_result = response['error_info']['error']
-        # result = '结课状态：{}'.format(end_result)
         return response
 
     def add_course_class(self, courseId, className, beginTime, endTime, teacherUid, assistantUid='', seatNum=6,
@@ -344,10 +348,7 @@ class API:
             }
 
         response = json.loads(requests.post(url=self.action.addCourseClass, data=data).text)
-        if 'data' in response.keys():
-            return response['data']
-        else:
-            return ''
+        return response
 
     def edit_course_class(self, courseId, classId, record, live, replay):
         """
