@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 @Author   : QH
-@Time     :2024/3/25
+@Time     :2024/7/2
 @File     :ClassInAPI.py
 @IDE      :PyCharm
 """
@@ -103,14 +103,13 @@ class API:
         """
 
         self.SID = school_uid
-        self.SECRET = school_secret
+        self.secret = school_secret
         # 创建请求url的对象
         self.action = Path()
 
     def get_safe_key(self):
         time_stamp = int(time.time())
-        secret = self.SECRET
-        safe_key = hashlib.md5((secret + str(time_stamp)).encode()).hexdigest()
+        safe_key = hashlib.md5((self.secret + str(time_stamp)).encode()).hexdigest()
         return time_stamp, safe_key
 
     def register(self, account, nickname, password, addToSchoolMember):
@@ -123,28 +122,22 @@ class API:
         @return:
         """
         time_stamp, safe_key = self.get_safe_key()
+        payload = {
+            'SID': self.SID,
+            'timeStamp': time_stamp,
+            'safeKey': safe_key,
+            'email': account,
+            'telephone': account,
+            'password': password,
+            'nickname': nickname,
+            'addToSchoolMember': addToSchoolMember
+        }
         if '@' in account:
-            data = {
-                'SID': self.SID,
-                'timeStamp': time_stamp,
-                'safeKey': safe_key,
-                'email': account,
-                'password': password,
-                'nickname': nickname,
-                'addToSchoolMember': addToSchoolMember
-            }
+            del payload['telephone']
         else:
-            data = {
-                'SID': self.SID,
-                'timeStamp': time_stamp,
-                'safeKey': safe_key,
-                'telephone': account,
-                'password': password,
-                'nickname': nickname,
-                'addToSchoolMember': addToSchoolMember
-            }
+            del payload['email']
 
-        response = json.loads((requests.post(url=self.action.register, data=data)).text)
+        response = requests.post(url=self.action.register, data=payload).json()
 
         return response
 
@@ -160,14 +153,14 @@ class API:
         @return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
             'userJson': json.dumps(userJson)
         }
 
-        response = json.loads((requests.post(url=self.action.registerMultiple, data=data)).text)
+        response = requests.post(url=self.action.registerMultiple, data=payload).json()
 
         return response
 
@@ -179,7 +172,7 @@ class API:
         :return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -187,7 +180,7 @@ class API:
             'teacherName': teacherName
         }
 
-        response = json.loads((requests.post(url=self.action.addTeacher, data=data)).text)
+        response = requests.post(url=self.action.addTeacher, data=payload).json()
         return response
 
     def edit_teacher(self, teacherUid, teacherName):
@@ -198,7 +191,7 @@ class API:
         :return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -206,7 +199,7 @@ class API:
             'teacherName': teacherName
         }
 
-        response = json.loads((requests.post(url=self.action.editTeacher, data=data)).text)
+        response = requests.post(url=self.action.editTeacher, data=payload).json()
         return response
 
     def add_school_student(self, studentAccount, studentName):
@@ -217,7 +210,7 @@ class API:
         :return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -225,7 +218,7 @@ class API:
             'studentName': studentName
         }
 
-        response = json.loads((requests.post(url=self.action.addSchoolStudent, data=data)).text)
+        response = requests.post(url=self.action.addSchoolStudent, data=payload).json()
 
         return response
 
@@ -237,7 +230,7 @@ class API:
         :return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -245,7 +238,7 @@ class API:
             'studentName': studentName
         }
 
-        response = json.loads((requests.post(url=self.action.editSchoolStudent, data=data)).text)
+        response = requests.post(url=self.action.editSchoolStudent, data=payload).json()
 
         return response
 
@@ -263,7 +256,7 @@ class API:
         :return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -276,7 +269,7 @@ class API:
             'courseUniqueIdentity': courseUniqueIdentity,
         }
 
-        response = json.loads((requests.post(url=self.action.addCourse, data=data)).text)
+        response = requests.post(url=self.action.addCourse, data=payload).json()
         return response
 
     def end_course(self, courseId):
@@ -288,13 +281,13 @@ class API:
         :return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
             'courseId': courseId,
         }
-        response = json.loads((requests.post(url=self.action.endCourse, data=data)).text)
+        response = requests.post(url=self.action.endCourse, data=payload).json()
         return response
 
     def add_course_class(self, courseId, className, beginTime, endTime, teacherUid, assistantUid='', seatNum=6,
@@ -315,39 +308,25 @@ class API:
         """
 
         time_stamp, safe_key = self.get_safe_key()
+        payload = {
+            'SID': self.SID,
+            'timeStamp': time_stamp,
+            'safeKey': safe_key,
+            'courseId': courseId,
+            'className': className,
+            'beginTime': beginTime,
+            'endTime': endTime,
+            'teacherUid': teacherUid,
+            'assistantUid': assistantUid,
+            'seatNum': seatNum,
+            'record': record,
+            'live': live,
+            'replay': replay
+        }
         if assistantUid == '':
-            data = {
-                'SID': self.SID,
-                'timeStamp': time_stamp,
-                'safeKey': safe_key,
-                'courseId': courseId,
-                'className': className,
-                'beginTime': beginTime,
-                'endTime': endTime,
-                'teacherUid': teacherUid,
-                'seatNum': seatNum,
-                'record': record,
-                'live': live,
-                'replay': replay
-            }
-        else:
-            data = {
-                'SID': self.SID,
-                'timeStamp': time_stamp,
-                'safeKey': safe_key,
-                'courseId': courseId,
-                'className': className,
-                'beginTime': beginTime,
-                'endTime': endTime,
-                'teacherUid': teacherUid,
-                'assistantUid': assistantUid,
-                'seatNum': seatNum,
-                'record': record,
-                'live': live,
-                'replay': replay
-            }
+            del payload['assistantUid']
 
-        response = json.loads(requests.post(url=self.action.addCourseClass, data=data).text)
+        response = requests.post(url=self.action.addCourseClass, data=payload).json()
         return response
 
     def edit_course_class(self, courseId, classId, record, live, replay):
@@ -362,7 +341,7 @@ class API:
         """
 
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -371,10 +350,9 @@ class API:
             'record': record,
             'live': live,
             'replay': replay
-
         }
 
-        response = json.loads(requests.post(url=self.action.editCourseClass, data=data).text)
+        response = requests.post(url=self.action.editCourseClass, data=payload).json()
 
         return response
 
@@ -387,7 +365,7 @@ class API:
         """
 
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -395,7 +373,7 @@ class API:
             'classId': classId,
         }
 
-        response = json.loads(requests.post(url=self.action.delCourseClass, data=data).text)
+        response = requests.post(url=self.action.delCourseClass, data=payload).json()
 
         return response
 
@@ -408,7 +386,7 @@ class API:
         :return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -417,7 +395,7 @@ class API:
             'identity': identity
         }
 
-        response = json.loads(requests.post(url=self.action.addCourseStudent, data=data).text)
+        response = requests.post(url=self.action.addCourseStudent, data=payload).json()
 
         return response
 
@@ -431,7 +409,7 @@ class API:
         """
 
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -440,7 +418,7 @@ class API:
             'studentJson': json.dumps(user_list)
         }
 
-        response = json.loads(requests.post(url=self.action.addCourseStudentMultiple, data=data).text)
+        response = requests.post(url=self.action.addCourseStudentMultiple, data=payload).json()
 
         return response
 
@@ -454,7 +432,7 @@ class API:
         """
 
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -463,7 +441,7 @@ class API:
             'studentUid': studentUid
         }
 
-        response = json.loads(requests.post(url=self.action.delCourseStudent, data=data).text)
+        response = requests.post(url=self.action.delCourseStudent, data=payload).json()
 
         return response
 
@@ -477,7 +455,7 @@ class API:
         """
 
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -486,7 +464,7 @@ class API:
             'studentUidJson': json.dumps(user_list)
         }
 
-        response = json.loads(requests.post(url=self.action.delCourseStudentMultiple, data=data).text)
+        response = requests.post(url=self.action.delCourseStudentMultiple, data=payload).json()
 
         return response
 
@@ -500,7 +478,7 @@ class API:
         :return:
         """
         time_stamp, safe_key = self.get_safe_key()
-        data = {
+        payload = {
             'SID': self.SID,
             'timeStamp': time_stamp,
             'safeKey': safe_key,
@@ -510,6 +488,6 @@ class API:
             'isHd': isHd
         }
 
-        response = json.loads(requests.post(url=self.action.modifyClassSeatNum, data=data).text)
+        response = requests.post(url=self.action.modifyClassSeatNum, data=payload).json()
 
         return response
