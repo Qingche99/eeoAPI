@@ -1,6 +1,9 @@
 ### Example user template template
 ### Example user template
-
+.pypirc
+LICENSE
+setup.cfg
+setup.py
 # IntelliJ project files
 .idea
 *.iml
